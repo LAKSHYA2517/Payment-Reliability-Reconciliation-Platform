@@ -1,4 +1,5 @@
 import express from "express";
+import { Payemnt } from "./types";
 
 const app=express();
 
@@ -10,8 +11,8 @@ app.get("/",(req,res)=>{
     });
 });
 
-app.get("/payment",(req,res)=>{
-    const payment=req.body;
+app.get("/payments",(req,res)=>{
+    const payment:Payemnt=req.body;
     
     res.json({
         message:"Payment recieved",
