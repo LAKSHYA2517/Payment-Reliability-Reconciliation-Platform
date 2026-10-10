@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+import { Pool, type PoolClient } from "pg";
 
 export function createPool(connectionString: string): Pool {
   const pool = new Pool({
@@ -14,6 +14,23 @@ export function createPool(connectionString: string): Pool {
   });
 
   return pool;
+}
+
+// Runs fn on one dedicated connection inside BEGIN/COMMIT; any throw rolls everything back.
+export async function withTransaction<T>(pool: Pool, fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await fn(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (err) {
+    // If the rollback itself fails (dead connection), still surface the original error.
+    await client.query("ROLLBACK").catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export async function checkDb(pool: Pool, timeoutMs = 2_000): Promise<void> {

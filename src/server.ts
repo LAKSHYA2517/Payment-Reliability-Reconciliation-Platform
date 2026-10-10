@@ -1,10 +1,11 @@
 import { createApp } from "./app";
 import { loadConfig } from "./config";
 import { checkDb, createPool } from "./db";
+import { createPaymentService } from "./modules/payments/payment.service";
 
 const config = loadConfig();
 const pool = createPool(config.DATABASE_URL);
-const app = createApp({ checkDb: () => checkDb(pool) });
+const app = createApp({ checkDb: () => checkDb(pool), payments: createPaymentService(pool) });
 
 const server = app.listen(config.PORT, () => {
   console.log(`Server listening on port ${config.PORT} (${config.NODE_ENV})`);

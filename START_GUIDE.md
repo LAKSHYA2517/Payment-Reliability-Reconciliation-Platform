@@ -65,14 +65,34 @@ curl -i localhost:3000/healthz
 | `npm run build` | Compile TypeScript from `src/` to `dist/` |
 | `npm start` | Run the compiled server from `dist/` |
 | `npm run typecheck` | Type-check without emitting files |
-| `npm test` | Run the tests (no database needed) |
+| `npm test` | Run the tests. Needs the database running (`docker compose up -d db`); uses a separate `<your db>_test` database that it creates and migrates itself |
 | `npm run migrate:create -- <name>` | Create a new SQL migration file |
 | `npm run migrate:up` | Apply pending migrations |
 | `npm run migrate:down` | Roll back the last migration |
 
+## Try the payments API
+
+```bash
+# Create a payment (amount is in cents; only USD is supported for now)
+curl -i -X POST localhost:3000/payments \
+  -H 'Content-Type: application/json' \
+  -d '{"amount_cents": 4999, "currency": "USD"}'
+
+# Fetch it, using the id from the response above
+curl -i localhost:3000/payments/<id>
+```
+
+| Request | Response |
+|---|---|
+| `POST /payments` with a valid body | `201` and the new payment, status `PENDING` |
+| `POST /payments` with an invalid body | `400` with `validation_error` and a `details` list |
+| `GET /payments/:id` for an existing payment | `200` and the payment |
+| `GET /payments/:id` for an unknown id | `404` with `payment_not_found` |
+| `GET /payments/:id` with an id that is not a UUID | `400` with `validation_error` |
+
 ## Verify the setup
 
-1. `npm test` passes (6 tests).
+1. `docker compose up -d db`, then `npm test` passes (68 tests).
 2. `curl -i localhost:3000/healthz` returns 200.
 3. `docker compose stop db`, then curl again: returns 503 with `"database":"down"`.
 4. `docker compose start db`, wait a few seconds: back to 200.

@@ -1,8 +1,11 @@
 import express, { type ErrorRequestHandler } from "express";
 import { healthRouter } from "./modules/health/health.routes";
+import { paymentRouter } from "./modules/payments/payment.routes";
+import type { PaymentService } from "./modules/payments/payment.service";
 
 export interface AppDeps {
   checkDb: () => Promise<void>;
+  payments: PaymentService;
 }
 
 export function createApp(deps: AppDeps): express.Express {
@@ -11,6 +14,7 @@ export function createApp(deps: AppDeps): express.Express {
   app.use(express.json());
 
   app.use(healthRouter(deps.checkDb));
+  app.use(paymentRouter(deps.payments));
 
   app.use((_req, res) => {
     res.status(404).json({ error: "not_found" });

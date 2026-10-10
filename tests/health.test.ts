@@ -1,10 +1,14 @@
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app";
+import type { PaymentService } from "../src/modules/payments/payment.service";
+
+// These tests never reach the payment routes, so an empty stand-in is enough.
+const payments = {} as PaymentService;
 
 describe("GET /healthz", () => {
   it("returns 200 when the database check succeeds", async () => {
-    const app = createApp({ checkDb: async () => {} });
+    const app = createApp({ checkDb: async () => {}, payments });
 
     const res = await request(app).get("/healthz");
 
@@ -14,7 +18,7 @@ describe("GET /healthz", () => {
 
   it("returns 503 when the database check fails, while reporting the app as up", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
-    const app = createApp({ checkDb: async () => { throw new Error("connection refused"); } });
+    const app = createApp({ checkDb: async () => { throw new Error("connection refused"); }, payments });
 
     const res = await request(app).get("/healthz");
 
@@ -24,7 +28,7 @@ describe("GET /healthz", () => {
 });
 
 describe("app fallbacks", () => {
-  const app = createApp({ checkDb: async () => {} });
+  const app = createApp({ checkDb: async () => {}, payments });
 
   it("returns a JSON 404 for unknown routes", async () => {
     const res = await request(app).get("/nope");
