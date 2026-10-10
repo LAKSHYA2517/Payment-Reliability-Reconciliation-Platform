@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+*.tsbuildinfo
+coverage/
+
+# secrets and local environment (keep the template)
+.env
+.env.*
+!.env.example
+
+# logs and OS/editor noise
+*.log
+npm-debug.log*
+.DS_Store
+.idea/
+.vscode/
